@@ -1,0 +1,6 @@
+[submodule "extern/tuple"]
+	path = extern/tuple
+	url = https://github.com/Jacob-C-Smith/tuple
+[submodule "extern/sync"]
+	path = extern/sync
+	url = https://github.com/Jacob-C-Smith/sync
