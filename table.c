@@ -14,6 +14,7 @@ struct table_s
 {
     size_t   rows,
              columns;
+    void   **swap;
     tuple  **pp_tuples;
     mutex   *p_locks;
 };
@@ -97,6 +98,12 @@ int table_construct ( table **const pp_table, size_t columns, size_t rows )
 
     // Error check
     if ( p_table->p_locks == 0 ) goto no_mem;
+
+    // Allocate a list of void pointers
+    p_table->swap = TABLE_REALLOC(0, sizeof(void *) * rows);
+
+    // Error check
+    if ( p_table->swap == 0 ) goto no_mem;
 
     // Iterate over each row
     for (size_t i = 0; i < rows; i++)
@@ -195,21 +202,8 @@ int table_set_cell ( table *const p_table, size_t x, size_t y, void *p_element )
 {
 
     // Argument check
-    if ( p_table == (void *) 0 )
-    {
-
-        // Write an error message to stdout
-        #ifndef NDEBUG
-            printf("[table] Null pointer provided for parameter \"p_table\" in call to function \"%s\"\n", __FUNCTION__);
-        #endif
-
-        // Error
-        return 0;
-    }
+    if ( p_table == (void *) 0 ) goto no_table;
     
-    // Uninitialized data
-    void *tuple_contents[p_table->columns];
-
     // Initialized data
     tuple *p_row = p_table->pp_tuples[y];
     
@@ -218,10 +212,10 @@ int table_set_cell ( table *const p_table, size_t x, size_t y, void *p_element )
 
     // Store contents of the tuple on the stack
     // TODO: Error check
-    tuple_get(p_row, &tuple_contents, 0);
+    tuple_get(p_row, p_table->swap, 0);
 
     // Update the element
-    tuple_contents[x] = p_element;
+    p_table->swap[x] = p_element;
 
     // Destroy the old tuple
     // TODO: Error check
@@ -229,7 +223,7 @@ int table_set_cell ( table *const p_table, size_t x, size_t y, void *p_element )
 
     // Construct a new tuple from the contents of the old tuple
     // TODO: Error check
-    tuple_from_elements(&p_table->pp_tuples[y], tuple_contents, p_table->columns);
+    tuple_from_elements(&p_table->pp_tuples[y], p_table->swap, p_table->columns);
 
     // Unlock the row
     mutex_unlock(p_table->p_locks[y]);
@@ -240,6 +234,16 @@ int table_set_cell ( table *const p_table, size_t x, size_t y, void *p_element )
     // Error handling
     {
 
+        // Argument check
+        {
+            no_table:
+                #ifndef NDEBUG
+                    printf("[table] Null pointer provided for parameter \"p_table\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
     }
 }
 
@@ -271,4 +275,45 @@ int table_get_cell ( const table *const p_table, size_t x, size_t y, void **pp_e
     return 1;
 
     // TODO: Error handling
+}
+
+int table_swap_rows ( table *const p_table, size_t row1, size_t row2 )
+{
+
+    // Argument check
+    if ( p_table == (void *) 0 ) goto no_table;
+
+    // Initialized data
+    tuple *p_tmp = 0;
+
+    // Lock the mutexes
+    mutex_lock(p_table->p_locks[row1]);
+    mutex_lock(p_table->p_locks[row2]);
+    
+    // Swap the row
+    p_tmp                    = p_table->pp_tuples[row1];    
+    p_table->pp_tuples[row1] = p_table->pp_tuples[row2];
+    p_table->pp_tuples[row2] = p_tmp;
+
+    // Unlock the mutexes
+    mutex_unlock(p_table->p_locks[row1]);
+    mutex_unlock(p_table->p_locks[row2]);
+
+    // Success
+    return 1;
+
+    // Error handling
+    {
+
+        // Argument check
+        {
+            no_table:
+                #ifndef NDEBUG
+                    printf("[table] Null pointer provided for parameter \"p_table\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+    }
 }

@@ -101,6 +101,19 @@ DLLEXPORT int table_get_cell ( const table *const p_table, size_t x, size_t y, v
  */
 DLLEXPORT int table_set_cell ( table *const p_table, size_t x, size_t y, void *p_element );
 
+/** !
+ *  Swap two rows in the table 
+ *
+ * @param p_table the table
+ * @param row1    the index of the first row
+ * @param row2    the index of the second row
+ *
+ * @sa table_set_cell
+ *
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int table_swap_rows ( table *const p_table, size_t row1, size_t row2 );
+
 // Destructors
 /** !
  *  Destroy and deallocate a table
