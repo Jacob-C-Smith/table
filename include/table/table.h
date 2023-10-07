@@ -86,6 +86,19 @@ DLLEXPORT int table_construct ( table **const pp_table, size_t columns, size_t r
  */
 DLLEXPORT int table_get_cell ( const table *const p_table, size_t x, size_t y, void **pp_element );
 
+/** !
+ *  Get the contents of a table row
+ *
+ * @param p_table     the table
+ * @param y           the row of the cell
+ * @param pp_elements return
+ *
+ * @sa table_get_cell
+ *
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int table_get_row ( const table *const p_table, size_t y, const void **const pp_elements );
+
 // Mutators
 /** !
  *  Set the contents of a table cell
