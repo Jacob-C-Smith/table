@@ -17,19 +17,6 @@ if (${IS_DEBUG_BUILD})
     add_compile_definitions(NDEBUG)
 endif()
 
-# Find the sync module
-if ( NOT "${HAS_SYNC}")
-
-    # Log
-    message("[table] Adding sync project")
-
-    # Add the sync directory
-    add_subdirectory(${CMAKE_SOURCE_DIR}/extern/sync ${CMAKE_SOURCE_DIR}/build/sync)
-
-    # Let any parent project know that this project has sync
-    set(HAS_SYNC true PARENT_SCOPE)
-endif()
-
 # Find the tuple module
 if ( NOT "${HAS_TUPLE}")
 
